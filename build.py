@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 from pybuilder.core import Author
 from pybuilder.core import init

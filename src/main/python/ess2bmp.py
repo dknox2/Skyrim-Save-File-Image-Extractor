@@ -2,7 +2,8 @@
 
 import sys
 
-usage = """python3 tes5file.ess output.bmp
+usage = """Usage:
+python3 tes5file.ess output.bmp
 ./ess2bmp.py tes5file.ess output.bmp
 
 Writes the screenshot data from the given Skyrim save file to the given bitmap
@@ -27,12 +28,13 @@ UINT32 = 4
 
 def main():
 	validate_command_line_args()
-	validate_usage(sys.argv[1], sys.argv[2])
 
 	ess_to_bmp(sys.argv[1], sys.argv[2])
 	sys.exit(BMP_GENERATION_SUCCESS)
 
 def ess_to_bmp(save_file_name, bmp_file_name):
+	validate_usage(save_file_name, bmp_file_name)
+
 	with open(save_file_name, "rb") as save_file:
 		dimensions = find_shot_dimensions(save_file)
 		shot_data = find_shot_data(save_file, dimensions)
