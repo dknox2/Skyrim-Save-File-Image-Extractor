@@ -26,33 +26,36 @@ UINT16 = 2
 UINT32 = 4
 
 def main():
-	validate_usage()
+	validate_command_line_args()
+	validate_usage(sys.argv[1], sys.argv[2])
 
-	save_file_name = sys.argv[1]
+	ess_to_bmp(sys.argv[1], sys.argv[2])
+	sys.exit(BMP_GENERATION_SUCCESS)
+
+def ess_to_bmp(save_file_name, bmp_file_name):
 	with open(save_file_name, "rb") as save_file:
 		dimensions = find_shot_dimensions(save_file)
 		shot_data = find_shot_data(save_file, dimensions)
 
-	bmp_file_name = sys.argv[2]
 	write_bmp_file(bmp_file_name, dimensions, shot_data)
 
+	print(save_file_name)
 	print("Shot width: {}".format(dimensions[0]))
 	print("Shot height: {}".format(dimensions[1]))
 
-	sys.exit(BMP_GENERATION_SUCCESS)
+def validate_command_line_args():
+	if (len(sys.argv)) != 3:
+		exit_invalid_args()
 
-def validate_usage():
-	if not args_are_valid():
+def exit_invalid_args():
 		print(usage)
 		sys.exit(INCORRECT_USAGE)
 
-def args_are_valid():
-	if (len(sys.argv)) != 3:
-		return False
+def validate_usage(save_file_name, bmp_file_name):
+	if not args_are_valid(save_file_name, bmp_file_name):
+		exit_invalid_args()
 
-	save_file_name = sys.argv[1]
-	bmp_file_name = sys.argv[2]
-
+def args_are_valid(save_file_name, bmp_file_name):
 	save_file_valid = save_file_name.endswith(".ess")
 	bmp_file_valid = bmp_file_name.endswith(".bmp")
 
@@ -133,8 +136,8 @@ def write_bmp_shot_data(bmp_file, shot_data):
 
 	for row in shot_data:
 		for pixel in row:
-			for UINT8_value in pixel:
-				bmp_file.write((UINT8_value).to_bytes(UINT8, byteorder = "little"))
+			for color_value in pixel:
+				bmp_file.write((color_value).to_bytes(UINT8, byteorder = "little"))
 
 if __name__ == "__main__":
 	main()
