@@ -12,14 +12,14 @@ def generate_image():
 
 		shot_data = find_shot_data(save_file, dimensions)
 
-	print("Shot width: {}".format(dimensions[0]))
-	print("Shot height: {}".format(dimensions[1]))
-
 	bmp_file_name = sys.argv[2]
 	with open(bmp_file_name, "w+b") as bmp_file:
 		write_bmp_file_header(bmp_file)
 		write_bmp_image_header(bmp_file, dimensions)
 		write_bmp_shot_data(bmp_file, shot_data)
+
+	print("Shot width: {}".format(dimensions[0]))
+	print("Shot height: {}".format(dimensions[1]))
 
 def args_are_valid():
 	if (len(sys.argv)) != 3:
@@ -57,14 +57,24 @@ def find_shot_data(save_file, dimensions):
 	save_file.seek(find_shot_data_offset(save_file))
 
 	data = list()
-	for x in range(3 * dimensions[0] * dimensions[1]):
-		r = int.from_bytes(save_file.read(1), byteorder = "little")
-		g = int.from_bytes(save_file.read(1), byteorder = "little")
-		b = int.from_bytes(save_file.read(1), byteorder = "little")
-
-		data.append((r, g, b))
+	for x in range(dimensions[1]):
+		row = find_shot_data_row(save_file, dimensions[0], x)
+		data.append(row)
 
 	return data
+
+def find_shot_data_row(save_file, row_width, row_num):
+	save_file.seek(find_shot_data_offset(save_file) + row_width * row_num * 3)
+
+	row = list()
+	for x in range(row_width):
+		b = int.from_bytes(save_file.read(1), byteorder = "little")
+		g = int.from_bytes(save_file.read(1), byteorder = "little")
+		r = int.from_bytes(save_file.read(1), byteorder = "little")
+
+		row.append((r, g, b))
+
+	return row
 
 def write_bmp_file_header(bmp_file):
 	bmp_file.write(b"BM")
@@ -93,13 +103,14 @@ def write_bmp_image_header(bmp_file, dimensions):
 	for x in range(6):
 		bmp_file.write((0).to_bytes(4, byteorder = "little"))
 
-
 def write_bmp_shot_data(bmp_file, shot_data):
 	bmp_file.seek(54)
 
-	for pixel in shot_data:
-		for color in pixel:
-			bmp_file.write((color).to_bytes(1, byteorder = "little"))
+	shot_data.reverse()
+	for row in shot_data:
+		for pixel in row:
+			for color_value in pixel:
+				bmp_file.write((color_value).to_bytes(1, byteorder = "little"))
 
 if __name__ == "__main__":
 	generate_image()
